@@ -33,7 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void didChangeDependencies() {
-    // NewsApiServices.getAllNews();
+    NewsApiServices.getAllNews();
     super.didChangeDependencies();
   }
 
