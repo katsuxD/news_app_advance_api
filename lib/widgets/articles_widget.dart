@@ -9,7 +9,14 @@ import 'package:page_transition/page_transition.dart';
 import '../inner_screen/blog_details.dart';
 
 class ArticleWidget extends StatelessWidget {
-  const ArticleWidget({super.key});
+  const ArticleWidget(
+      {super.key,
+      required this.image,
+      required this.title,
+      required this.url,
+      required this.dateToShow,
+      required this.readingTime});
+  final String image, title, url, dateToShow, readingTime;
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +55,9 @@ class ArticleWidget extends StatelessWidget {
                         height: size.height * 0.12,
                         width: size.height * 0.12,
                         boxFit: BoxFit.fill,
-                        imageUrl: "https://i.imgur.com/GQmhT2l.png",
+                        imageUrl: image,
+                        errorWidget:
+                            Image.asset("assets/images/empty_image.png"),
                       ),
                     ),
                     const SizedBox(
@@ -60,7 +69,7 @@ class ArticleWidget extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "data " * 100,
+                            title,
                             textAlign: TextAlign.justify,
                             style: smallTextStyle,
                             maxLines: 2,
@@ -70,7 +79,7 @@ class ArticleWidget extends StatelessWidget {
                           Align(
                             alignment: Alignment.topRight,
                             child: Text(
-                              "⏱ Reading time",
+                              "⏱ $readingTime",
                               style: smallTextStyle,
                             ),
                           ),
@@ -78,16 +87,21 @@ class ArticleWidget extends StatelessWidget {
                             children: [
                               IconButton(
                                 onPressed: () {
-                                  Navigator.pushNamed(
+                                 Navigator.push(
                                     context,
-                                    NewsDetailsScreen.routeName,
+                                    PageTransition(
+                                        type: PageTransitionType.rightToLeft,
+                                        child: NewsDetailWebView(url: url),
+                                        inheritTheme: true,
+                                        ctx: context),
                                   );
                                 },
                                 icon: const Icon(Icons.link),
                               ),
                               Text(
-                                "20-9-2023",
+                                dateToShow,
                                 style: smallTextStyle,
+                                maxLines: 1,
                               ),
                             ],
                           )

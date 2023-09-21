@@ -5,8 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../services/utils.dart';
 
 class TopTrendingWidget extends StatelessWidget {
-  const TopTrendingWidget({Key? key}) : super(key: key);
-
+  const TopTrendingWidget({Key? key, required this.url}) : super(key: key);
+  final String url;
   @override
   Widget build(BuildContext context) {
     final size = Utils(context).getScreenSize;
@@ -28,7 +28,7 @@ class TopTrendingWidget extends StatelessWidget {
                   boxFit: BoxFit.fill,
                   errorWidget: Image.asset('assets/images/empty_image.png'),
                   imageUrl:
-                      "https://techcrunch.com/wp-content/uploads/2022/01/locket-app.jpg?w=1390&crop=1",
+                      url,
                   height: size.height * 0.33,
                   width: double.infinity,
                 ),

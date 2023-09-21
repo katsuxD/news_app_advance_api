@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:flutter_news_api_advance/consts/http_exception.dart';
 import 'package:http/http.dart' as http;
 
 import '../consts/api_const.dart';
@@ -41,8 +42,8 @@ class NewsApiServices {
 
       var uri = Uri.https(BASEURL, "v2/everything", {
         "q": "bitcoin",
-        "pageSize": "5",
-        "domains": "techcrunch.com",
+        "pageSize": "10",
+        // "domains": "bbc.com",
         "apiKey": API_KEY
       });
       var response = await http.get(
@@ -54,13 +55,13 @@ class NewsApiServices {
       List newsTempList = [];
 
       if (data['code'] != null) {
-        throw HttpException(data['code']);
+        throw HttpExceptions(data['code']);
         // throw data['message'];
       }
       for (var v in data["articles"]) {
         newsTempList.add(v);
-        log(v.toString());
-        print(data["articles"].length.toString());
+        // log(v.toString());
+        // print(data["articles"].length.toString());
       }
       return NewsModel.newsFromSnapshot(newsTempList);
     } catch (error) {

@@ -14,7 +14,8 @@ import '../services/global_methods.dart';
 import '../widgets/vertical_spacing.dart';
 
 class NewsDetailWebView extends StatefulWidget {
-  const NewsDetailWebView({super.key});
+  const NewsDetailWebView({super.key, required this.url});
+  final String url;
 
   @override
   State<NewsDetailWebView> createState() => _NewsDetailWebViewState();
@@ -23,13 +24,10 @@ class NewsDetailWebView extends StatefulWidget {
 class _NewsDetailWebViewState extends State<NewsDetailWebView> {
   double _progress = 0.0;
   final controller = WebViewController()
-    ..setJavaScriptMode(JavaScriptMode.disabled)
     ..canGoBack()
     ..canGoForward()
-    ..reload()
-    ..clearCache()
-    ..enableZoom(true)
-    ..loadRequest(Uri.parse("https://flutter.dev"));
+    ..enableZoom(true);
+  // ..loadRequest(Uri.parse("https://flutter.dev"));
   @override
   Widget build(BuildContext context) {
     final Color color = Utils(context).getColor;
@@ -48,7 +46,7 @@ class _NewsDetailWebViewState extends State<NewsDetailWebView> {
           iconTheme: IconThemeData(color: color),
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           title: Text(
-            "https://flutter.dev",
+            widget.url,
             style: TextStyle(color: color),
           ),
           elevation: 0,
@@ -73,15 +71,16 @@ class _NewsDetailWebViewState extends State<NewsDetailWebView> {
             ),
             Expanded(
               child: WebViewWidget(
-                controller: controller
-                  ..setNavigationDelegate(NavigationDelegate(
-                    onProgress: (int progress) {
-                      setState(() {
+                  controller: controller
+                    ..currentUrl()
+                    ..loadRequest(Uri.parse(widget.url))
+                    ..setNavigationDelegate(NavigationDelegate(
+                      onProgress: (int progress) {
                         _progress = progress / 100;
-                      });
-                    },
-                  )),
-              ),
+                        debugPrint(
+                            'WebView is loading (progress : $progress%)');
+                      },
+                    ))),
             ),
           ],
         ),
@@ -167,7 +166,8 @@ class _NewsDetailWebViewState extends State<NewsDetailWebView> {
                   title: const Text('Share'),
                   onTap: () async {
                     try {
-                      await Share.share("test", subject: 'Look what I made!');
+                      await Share.share(widget.url,
+                          subject: 'Look what I made!');
                     } catch (err) {
                       GlobalMethods.errorDialog(
                           errorMessage: err.toString(), context: context);
@@ -178,8 +178,8 @@ class _NewsDetailWebViewState extends State<NewsDetailWebView> {
                   leading: const Icon(Icons.open_in_browser),
                   title: const Text('Open in browser'),
                   onTap: () async {
-                    if (!await launchUrl(Uri.parse("https://flutter.dev"))) {
-                      throw 'Could not launch ${"https://flutter.dev"}}';
+                    if (!await launchUrl(Uri.parse(widget.url))) {
+                      throw 'Could not launch ${widget.url}}';
                     }
                   },
                 ),
@@ -190,7 +190,7 @@ class _NewsDetailWebViewState extends State<NewsDetailWebView> {
                     try {
                       await controller.reload();
                     } catch (err) {
-                        GlobalMethods.errorDialog(
+                      GlobalMethods.errorDialog(
                           errorMessage: err.toString(), context: context);
                     } finally {
                       Navigator.pop(context);

@@ -8,6 +8,7 @@ import 'package:flutter_news_api_advance/services/news_api.dart';
 import 'package:flutter_news_api_advance/services/utils.dart';
 import 'package:flutter_news_api_advance/widgets/articles_widget.dart';
 import 'package:flutter_news_api_advance/widgets/drawer_widget.dart';
+import 'package:flutter_news_api_advance/widgets/empty_screen.dart';
 import 'package:flutter_news_api_advance/widgets/tabs.dart';
 import 'package:flutter_news_api_advance/widgets/top_trending_widget.dart';
 import 'package:flutter_news_api_advance/widgets/vertical_spacing.dart';
@@ -16,6 +17,7 @@ import 'package:page_transition/page_transition.dart';
 import 'package:provider/provider.dart';
 
 import '../inner_screen/search_screen.dart';
+import '../model/news_model.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/loading_widget.dart';
 
@@ -31,11 +33,16 @@ class _HomeScreenState extends State<HomeScreen> {
   int currentPageIndex = 0;
   String sortBy = SortByEnum.publishedAt.name;
 
-  @override
-  void didChangeDependencies() {
-    NewsApiServices.getAllNews();
-    super.didChangeDependencies();
-  }
+  // @override
+  // void didChangeDependencies() {
+  //   super.didChangeDependencies();
+  // }
+
+  // Future<List<NewsModel>> fetchNews() async {
+  //   List<NewsModel> newList = [];
+  //   newList = await NewsApiServices.getAllNews();
+  //   return newList;
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -198,32 +205,61 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
             // LoadingWidget()
-            if (newsType == NewsType.allNews)
-              Expanded(
-                child: ListView.builder(
-                  itemCount: 20,
-                  itemBuilder: (context, index) {
-                    return const ArticleWidget();
-                  },
-                ),
-              ),
-            if (newsType == NewsType.topTrending)
-              SizedBox(
-                  height: size.height * 0.5,
-                  child: Swiper(
-                    autoplay: true,
-                    autoplayDelay: 8000,
-                    itemWidth: size.width * 0.85,
-                    layout: SwiperLayout.STACK,
-                    viewportFraction: 0.9,
-                    itemCount: 5,
-                    itemBuilder: (context, index) {
-                      return const TopTrendingWidget();
-                    },
-                  )),
-            //const LoadingWidget(
-            //newsType: NewsType.topTrending,
-            //);
+            FutureBuilder<List<NewsModel>>(
+              future: NewsApiServices.getAllNews(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return newsType == NewsType.allNews
+                      ? LoadingWidget(newsType: newsType)
+                      : Expanded(
+                          child: LoadingWidget(newsType: newsType),
+                        );
+                } else if (snapshot.hasError) {
+                  return Expanded(
+                      child: EmptyNewsWidget(
+                    text: "an error occured ${snapshot.error}",
+                    imagePath: "assets/images/no_news.png",
+                  ));
+                } else if (snapshot.data == null) {
+                  return const Expanded(
+                      child: EmptyNewsWidget(
+                    text: "No news found",
+                    imagePath: "assets/images/no_news.png",
+                  ));
+                }
+                return newsType == NewsType.allNews
+                    ? Expanded(
+                        child: ListView.builder(
+                            itemCount: snapshot.data!.length,
+                            itemBuilder: (ctx, index) {
+                              return ArticleWidget(
+                                image: snapshot.data![index].urlToImage,
+                                title: snapshot.data![index].title,
+                                url: snapshot.data![index].url,
+                                dateToShow: snapshot.data![index].dateToShow,
+                                readingTime:
+                                    snapshot.data![index].readingTimeText,
+                              );
+                            }),
+                      )
+                    : SizedBox(
+                        height: size.height * 0.6,
+                        child: Swiper(
+                          autoplayDelay: 8000,
+                          autoplay: true,
+                          itemWidth: size.width * 0.9,
+                          layout: SwiperLayout.STACK,
+                          viewportFraction: 0.9,
+                          itemCount: 5,
+                          itemBuilder: (context, index) {
+                            return TopTrendingWidget(
+                              url: snapshot.data![index].urlToImage,
+                            );
+                          },
+                        ),
+                      );
+              },
+            )
           ],
         ),
       ),
